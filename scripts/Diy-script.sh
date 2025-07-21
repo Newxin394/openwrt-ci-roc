@@ -57,7 +57,8 @@ git_sparse_clone main https://github.com/haiibo/packages luci-theme-atmaterial l
 # 更改 Argon 主题背景
 cp -f $GITHUB_WORKSPACE/images/bg1.jpg package/luci-theme-argon/htdocs/luci-static/argon/img/bg1.jpg
 
-
+# 强大的工具Lucky大吉(需要添加源或git clone)
+echo "CONFIG_PACKAGE_luci-app-lucky=y" >> ./.config
 
 # 晶晨宝盒
 git_sparse_clone main https://github.com/ophub/luci-app-amlogic luci-app-amlogic
