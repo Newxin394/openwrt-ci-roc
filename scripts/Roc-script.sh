@@ -22,6 +22,17 @@ function git_sparse_clone() {
   mv -f $@ ../package
   cd .. && rm -rf $repodir
 }
+remove_uhttpd_dependency() {
+    local config_path="$BASE_PATH/$BUILD_DIR/.config"
+    local luci_makefile_path="$BASE_PATH/$BUILD_DIR/feeds/luci/collections/luci/Makefile"
+
+    if grep -q "CONFIG_PACKAGE_luci-app-quickfile=y" "$config_path"; then
+        if [ -f "$luci_makefile_path" ]; then
+            sed -i '/luci-light/d' "$luci_makefile_path"
+            echo "Removed uhttpd (luci-light) dependency as luci-app-quickfile (nginx) is enabled."
+        fi
+    fi
+}
 
 # OpenList & AdGuardHome & WolPlus & Lucky & OpenAppFilter & 集客无线AC控制器 & 雅典娜LED控制
 git clone --depth=1 https://github.com/sbwml/luci-app-openlist package/openlist
