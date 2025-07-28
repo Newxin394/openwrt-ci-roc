@@ -144,6 +144,35 @@ find package/luci-theme-*/* -type f -name '*luci-theme-*' -print -exec sed -i '/
 # sed -i 's/services/vpn/g' feeds/luci/applications/luci-app-v2ray-server/luasrc/controller/*.lua
 # sed -i 's/services/vpn/g' feeds/luci/applications/luci-app-v2ray-server/luasrc/model/cbi/v2ray_server/*.lua
 # sed -i 's/services/vpn/g' feeds/luci/applications/luci-app-v2ray-server/luasrc/view/v2ray_server/*.htm
+update_lucky() {
+    # 从补丁文件名中提取版本号
+    local version
+    version=$(find "$BASE_PATH/patches" -name "lucky_*.tar.gz" -printf "%f\n" | head -n 1 | sed -n 's/^lucky_\(.*\)_Linux.*$/\1/p')
+    if [ -z "$version" ]; then
+        echo "Warning: 未找到 lucky 补丁文件，跳过更新。" >&2
+        return 1
+    fi
+
+    local makefile_path="$BUILD_DIR/feeds/small8/lucky/Makefile"
+    if [ ! -f "$makefile_path" ]; then
+        echo "Warning: lucky Makefile not found. Skipping." >&2
+        return 1
+    fi
+
+    echo "正在更新 lucky Makefile..."
+    # 使用本地补丁文件，而不是下载
+    local patch_line="\\t[ -f \$(TOPDIR)/../patches/lucky_${version}_Linux_\$(LUCKY_ARCH)_wanji.tar.gz ] && install -Dm644 \$(TOPDIR)/../patches/lucky_${version}_Linux_\$(LUCKY_ARCH)_wanji.tar.gz \$(PKG_BUILD_DIR)/\$(PKG_NAME)_\$(PKG_VERSION)_Linux_\$(LUCKY_ARCH).tar.gz"
+
+    # 确保 Build/Prepare 部分存在，然后在其后添加我们的行
+    if grep -q "Build/Prepare" "$makefile_path"; then
+        sed -i "/Build\\/Prepare/a\\$patch_line" "$makefile_path"
+        # 删除任何现有的 wget 命令
+        sed -i '/wget/d' "$makefile_path"
+        echo "lucky Makefile 更新完成。"
+    else
+        echo "Warning: lucky Makefile 中未找到 'Build/Prepare'。跳过。" >&2
+    fi
+}
 
 ./scripts/feeds update -a
 ./scripts/feeds install -a
