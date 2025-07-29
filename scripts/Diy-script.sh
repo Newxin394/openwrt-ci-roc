@@ -28,24 +28,10 @@ function git_sparse_clone() {
   mv -f $@ ../package
   cd .. && rm -rf $repodir
 }
-add_quickfile() {
-    local repo_url="https://github.com/sbwml/luci-app-quickfile.git"
-    local target_dir="$BUILD_DIR/package/emortal/quickfile"
-    if [ -d "$target_dir" ]; then
-        rm -rf "$target_dir"
-    fi
-    git clone --depth 1 "$repo_url" "$target_dir"
-
-    local makefile_path="$target_dir/quickfile/Makefile"
-    if [ -f "$makefile_path" ]; then
-        sed -i '/\t\$(INSTALL_BIN) \$(PKG_BUILD_DIR)\/quickfile-\$(ARCH_PACKAGES)/c\
-\tif [ "\$(ARCH_PACKAGES)" = "x86_64" ]; then \\\
-\t\t\$(INSTALL_BIN) \$(PKG_BUILD_DIR)\/quickfile-x86_64 \$(1)\/usr\/bin\/quickfile; \\\
-\telse \\\
-\t\t\$(INSTALL_BIN) \$(PKG_BUILD_DIR)\/quickfile-aarch64_generic \$(1)\/usr\/bin\/quickfile; \\\
-\tfi' "$makefile_path"
-    fi
-}
+define Build/Prepare
+    $(call Build/Prepare/Default)
+    mv $(PKG_BUILD_DIR)/quickfile-aarch64_generic $(PKG_BUILD_DIR)/quickfile-$(ARCH_PACKAGES)
+endef
 # 添加额外插件
 git clone --depth=1 https://github.com/kongfl888/luci-app-adguardhome package/luci-app-adguardhome
 git clone --depth=1 -b openwrt-18.06 https://github.com/tty228/luci-app-wechatpush package/luci-app-serverchan
